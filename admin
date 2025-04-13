@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Wine Orders</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .login-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 100px auto;
+            text-align: center;
+        }
+        .orders-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .refresh-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .refresh-btn:hover {
+            background-color: #45a049;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .passcode-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+        .logout-btn {
+            background-color: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+        .change-passcode-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            display: none;
+        }
+        .change-passcode-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .change-passcode-btn:hover {
+            background-color: #1976D2;
+        }
+        .passcode-input-group {
+            margin-bottom: 15px;
+        }
+        .passcode-input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .passcode-input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .success-message {
+            color: green;
+            margin-top: 10px;
+            display: none;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .button-group button {
+            flex: 1;
+        }
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 14px;
+            min-width: 80px;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .serve-btn {
+            background-color: #2196F3;
+            color: white;
+            box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+        }
+        .serve-btn:hover {
+            background-color: #1976D2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(33, 150, 243, 0.4);
+        }
+        .clear-btn {
+            background-color: #f44336;
+            color: white;
+            box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
+        }
+        .clear-btn:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(244, 67, 54, 0.4);
+        }
+        .undo-btn {
+            background-color: #FF9800;
+            color: white;
+            box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+        }
+        .undo-btn:hover {
+            background-color: #F57C00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 152, 0, 0.4);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .tab-container {
+            margin-top: 20px;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+        }
+        .tab-button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .filter-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .filter-container select, .filter-container input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .order-status {
+            font-weight: bold;
+        }
+        .order-status.served {
+            color: #4CAF50;
+        }
+        .order-status.pending {
+            color: #FF9800;
+        }
+        .filter-container select {
+            min-width: 200px;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .categories-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .category-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .category-title {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .item-list {
+            margin-top: 10px;
+        }
+        .item-card {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item-name {
+            font-weight: bold;
+        }
+        .item-price {
+            color: #4CAF50;
+        }
+        .optional-selections {
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .selection-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .selection-input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .remove-selection {
+            color: #f44336;
+            cursor: pointer;
+        }
+        .customer-section {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .order-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .customer-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+        .order-time {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .order-items {
+            margin-bottom: 15px;
+        }
+        .order-item-detail {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .order-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .item-quantity {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .item-name {
+            flex: 1;
+            margin: 0 10px;
+        }
+        .order-selections {
+            margin-left: 20px;
+            padding-left: 10px;
+            border-left: 2px solid #ddd;
+        }
+        .order-selection {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .selection-price {
+            color: #4CAF50;
+        }
+        .order-total {
+            font-weight: bold;
+            font-size: 1.1em;
+            text-align: right;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginScreen" class="login-container">
+        <h2>Admin Login</h2>
+        <input type="password" id="passcode" class="passcode-input" placeholder="Enter Passcode" maxlength="4">
+        <div id="errorMessage" class="error-message">Incorrect passcode</div>
+        <button class="refresh-btn" onclick="checkPasscode()">Login</button>
+    </div>
+
+    <div id="adminPanel" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>Wine Orders Admin Panel</h1>
+            <div>
+                <button class="change-passcode-btn" onclick="showChangePasscode()">Change Passcode</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchTab('current')">Current Orders</button>
+                <button class="tab-button" onclick="switchTab('history')">Order History</button>
+                <button class="tab-button" onclick="switchTab('menu')">Menu</button>
+            </div>
+
+            <div id="currentTab" class="tab-content active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <button class="refresh-btn" onclick="refreshOrders()">Refresh Orders</button>
+                    <div class="filter-container">
+                        <input type="text" id="searchInput" placeholder="Search orders..." oninput="refreshOrders()">
+                        <select id="sortOrders" onchange="refreshOrders()">
+                            <option value="time-asc">Time (Oldest First)</option>
+                            <option value="time-desc">Time (Newest First)</option>
+                            <option value="name-asc">Name (A-Z)</option>
+                            <option value="name-desc">Name (Z-A)</option>
+                            <option value="wine-asc">Wine (A-Z)</option>
+                            <option value="wine-desc">Wine (Z-A)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="orders-container">
+                    <div id="ordersList">
+                        <!-- Orders will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="historyTab" class="tab-content">
+                <div class="filter-container" style="margin-bottom: 20px;">
+                    <select id="historyFilter" onchange="filterHistory()">
+                        <option value="all">All Orders</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                    <select id="historySort" onchange="filterHistory()">
+                        <option value="time-asc">Order Time (Oldest First)</option>
+                        <option value="time-desc">Order Time (Newest First)</option>
+                        <option value="served-asc">Served Time (Oldest First)</option>
+                        <option value="served-desc">Served Time (Newest First)</option>
+                        <option value="name-asc">Name (A-Z)</option>
+                        <option value="name-desc">Name (Z-A)</option>
+                        <option value="wine-asc">Wine (A-Z)</option>
+                        <option value="wine-desc">Wine (Z-A)</option>
+                    </select>
+                    <input type="text" id="historySearch" placeholder="Search orders..." oninput="filterHistory()">
+                </div>
+                <div class="orders-container">
+                    <table id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>Customer Name</th>
+                                <th>Wine Selection</th>
+                                <th>Quantity</th>
+                                <th>Order Time</th>
+                                <th>Served Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <!-- History will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="menuTab" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <button class="refresh-btn" onclick="showAddCategory()">Add Category</button>
+                    <button class="refresh-btn" onclick="showAddItem()">Add Item</button>
+                </div>
+
+                <div class="menu-container">
+                    <div id="categoriesList" class="categories-list">
+                        <!-- Categories will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="change-passcode-container" id="changePasscodeContainer">
+            <h3>Change Passcode</h3>
+            <div class="passcode-input-group">
+                <label for="oldPasscode">Current Passcode:</label>
+                <input type="password" id="oldPasscode" class="passcode-input" placeholder="Enter current passcode" maxlength="4">
+            </div>
+            <div class="passcode-input-group">
+                <label for="newPasscode">New Passcode:</label>
+                <input type="password" id="newPasscode" class="passcode-input" placeholder="Enter new passcode" maxlength="4">
+            </div>
+            <div class="passcode-input-group">
+                <label for="confirmPasscode">Confirm New Passcode:</label>
+                <input type="password" id="confirmPasscode" class="passcode-input" placeholder="Confirm new passcode" maxlength="4">
+            </div>
+            <div id="changePasscodeError" class="error-message">Incorrect current passcode or new passcodes don't match</div>
+            <div id="changePasscodeSuccess" class="success-message">Passcode changed successfully!</div>
+            <div class="button-group">
+                <button class="refresh-btn" onclick="changePasscode()">Change Passcode</button>
+                <button class="logout-btn" onclick="hideChangePasscode()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="addCategoryModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Add New Category</h3>
+            <div class="input-group">
+                <label for="categoryName">Category Name:</label>
+                <input type="text" id="categoryName" class="modal-input">
+            </div>
+            <div class="button-group">
+                <button class="refresh-btn" onclick="addCategory()">Add Category</button>
+                <button class="logout-btn" onclick="hideModal('addCategoryModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div id="addItemModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Add New Item</h3>
+            <div class="input-group">
+                <label for="itemCategory">Category:</label>
+                <select id="itemCategory" class="modal-input">
+                    <!-- Categories will be inserted here -->
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="itemName">Item Name:</label>
+                <input type="text" id="itemName" class="modal-input">
+            </div>
+            <div class="input-group">
+                <label for="itemPrice">Price:</label>
+                <input type="number" id="itemPrice" class="modal-input" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Optional Selections:</label>
+                <div id="optionalSelections">
+                    <!-- Optional selections will be added here -->
+                </div>
+                <button class="action-btn serve-btn" onclick="addOptionalSelection()" style="margin-top: 10px;">Add Selection</button>
+            </div>
+            <div class="button-group">
+                <button class="refresh-btn" onclick="addItem()">Add Item</button>
+                <button class="logout-btn" onclick="hideModal('addItemModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set the passcode (in a real application, this should be stored securely)
+        const ADMIN_PASSCODE = "1234";
+        let refreshInterval;
+
+        // Add auto-save interval
+        let autoSaveInterval;
+
+        function startAutoSave() {
+            // Save every 30 seconds
+            autoSaveInterval = setInterval(() => {
+                const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                const history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+                const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+                
+                // Save to localStorage
+                localStorage.setItem('orders', JSON.stringify(orders));
+                localStorage.setItem('orderHistory', JSON.stringify(history));
+                localStorage.setItem('categories', JSON.stringify(categories));
+                
+                // Show save notification
+                showSaveNotification();
+            }, 30000); // 30 seconds
+        }
+
+        function stopAutoSave() {
+            clearInterval(autoSaveInterval);
+        }
+
+        function showSaveNotification() {
+            const notification = document.createElement('div');
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.right = '20px';
+            notification.style.backgroundColor = '#4CAF50';
+            notification.style.color = 'white';
+            notification.style.padding = '10px 20px';
+            notification.style.borderRadius = '4px';
+            notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            notification.style.zIndex = '1000';
+            notification.textContent = 'Changes saved automatically';
+            
+            document.body.appendChild(notification);
+            
+            // Remove notification after 2 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.5s';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 500);
+            }, 2000);
+        }
+
+        function checkPasscode() {
+            const passcode = document.getElementById('passcode').value;
+            if (passcode === ADMIN_PASSCODE) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                document.querySelectorAll('.orders-container').forEach(container => {
+                    container.style.display = 'block';
+                });
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('passcode').value = '';
+                
+                // Start both auto-refresh and auto-save
+                refreshInterval = setInterval(refreshOrders, 5000);
+                startAutoSave();
+                refreshOrders();
+                refreshMenu();
+            } else {
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('passcode').value = '';
+            }
+        }
+
+        function logout() {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('passcode').value = '';
+            
+            // Stop both auto-refresh and auto-save
+            clearInterval(refreshInterval);
+            stopAutoSave();
+        }
+
+        function refreshOrders() {
+            const ordersList = document.getElementById('ordersList');
+            ordersList.innerHTML = '';
+            
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const sortOption = document.getElementById('sortOrders').value;
+            
+            let orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            
+            // Filter orders based on search query
+            orders = orders.filter(order => 
+                order.customerName.toLowerCase().includes(searchQuery) ||
+                order.items.some(item => 
+                    item.name.toLowerCase().includes(searchQuery) ||
+                    item.selections.some(selection => selection.name.toLowerCase().includes(searchQuery))
+                )
+            );
+            
+            // Sort orders
+            orders = sortOrders(orders, sortOption);
+            
+            if (orders.length === 0) {
+                ordersList.innerHTML = '<div class="no-orders">No current orders</div>';
+                return;
+            }
+
+            // Group orders by customer
+            const ordersByCustomer = {};
+            orders.forEach(order => {
+                if (!ordersByCustomer[order.customerName]) {
+                    ordersByCustomer[order.customerName] = [];
+                }
+                ordersByCustomer[order.customerName].push(order);
+            });
+
+            // Display orders grouped by customer
+            Object.entries(ordersByCustomer).forEach(([customerName, customerOrders]) => {
+                const customerSection = document.createElement('div');
+                customerSection.className = 'customer-section';
+                
+                let customerTotal = 0;
+                let itemsHtml = '';
+                
+                customerOrders.forEach(order => {
+                    order.items.forEach(item => {
+                        let itemTotal = item.basePrice * item.quantity;
+                        let selectionsHtml = '';
+                        
+                        if (item.selections && item.selections.length > 0) {
+                            selectionsHtml = '<div class="order-selections">';
+                            item.selections.forEach(selection => {
+                                selectionsHtml += `
+                                    <div class="order-selection">
+                                        <span>${selection.name}</span>
+                                        <span class="selection-price">+$${(selection.additionalPrice * item.quantity).toFixed(2)}</span>
+                                    </div>
+                                `;
+                                itemTotal += selection.additionalPrice * item.quantity;
+                            });
+                            selectionsHtml += '</div>';
+                        }
+                        
+                        itemsHtml += `
+                            <div class="order-item-detail">
+                                <div class="order-item-header">
+                                    <span class="item-quantity">${item.quantity}x</span>
+                                    <span class="item-name">${item.name}</span>
+                                    <span class="item-price">$${itemTotal.toFixed(2)}</span>
+                                </div>
+                                ${selectionsHtml}
+                            </div>
+                        `;
+                        
+                        customerTotal += itemTotal;
+                    });
+                });
+
+                const time = new Date(customerOrders[0].timestamp).toLocaleTimeString();
+                
+                customerSection.innerHTML = `
+                    <div class="order-header">
+                        <div class="order-info">
+                            <span class="customer-name">${customerName}</span>
+                            <span class="order-time">${time}</span>
+                        </div>
+                        <div class="order-actions">
+                            <button class="action-btn serve-btn" onclick="markAsServed('${customerOrders[0].timestamp}')">Served</button>
+                            <button class="action-btn clear-btn" onclick="clearOrder('${customerOrders[0].timestamp}')">Clear</button>
+                        </div>
+                    </div>
+                    <div class="order-items">
+                        ${itemsHtml}
+                    </div>
+                    <div class="order-total">
+                        Total: $${customerTotal.toFixed(2)}
+                    </div>
+                `;
+                
+                ordersList.appendChild(customerSection);
+            });
+        }
+
+        function sortOrders(orders, sortOption) {
+            return [...orders].sort((a, b) => {
+                switch(sortOption) {
+                    case 'time-asc':
+                        return new Date(a.timestamp) - new Date(b.timestamp);
+                    case 'time-desc':
+                        return new Date(b.timestamp) - new Date(a.timestamp);
+                    case 'name-asc':
+                        return a.customerName.localeCompare(b.customerName);
+                    case 'name-desc':
+                        return b.customerName.localeCompare(a.customerName);
+                    case 'wine-asc':
+                        return a.wineSelection.localeCompare(b.wineSelection);
+                    case 'wine-desc':
+                        return b.wineSelection.localeCompare(a.wineSelection);
+                    case 'served-asc':
+                        return new Date(a.servedTime) - new Date(b.servedTime);
+                    case 'served-desc':
+                        return new Date(b.servedTime) - new Date(a.servedTime);
+                    default:
+                        return 0;
+                }
+            });
+        }
+
+        function sortCurrentOrders() {
+            refreshOrders();
+        }
+
+        function clearOrder(timestamp) {
+            if (confirm('Are you sure you want to clear this order?')) {
+                const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                const orderIndex = orders.findIndex(order => order.timestamp === timestamp);
+                
+                if (orderIndex !== -1) {
+                    orders.splice(orderIndex, 1);
+                    localStorage.setItem('orders', JSON.stringify(orders));
+                    
+                    // Show save notification
+                    showSaveNotification();
+                    
+                    refreshOrders();
+                }
+            }
+        }
+
+        function refreshHistory() {
+            const history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+            const historyBody = document.getElementById('historyBody');
+            historyBody.innerHTML = '';
+            
+            history.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.customerName}</td>
+                    <td>${order.wineSelection}</td>
+                    <td>${order.quantity} glass${order.quantity > 1 ? 'es' : ''}</td>
+                    <td class="timestamp">${new Date(order.timestamp).toLocaleString()}</td>
+                    <td class="timestamp">${new Date(order.servedTime).toLocaleString()}</td>
+                    <td class="order-status served">Served</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn undo-btn" onclick="undoServed('${order.timestamp}')">Undo</button>
+                        </div>
+                    </td>
+                `;
+                historyBody.appendChild(row);
+            });
+        }
+
+        function markAsServed(timestamp) {
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            const orderIndex = orders.findIndex(order => order.timestamp === timestamp);
+            
+            if (orderIndex !== -1) {
+                const order = orders[orderIndex];
+                order.served = true;
+                order.servedTime = new Date().toISOString();
+                
+                // Move to history
+                let history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+                history.push(order);
+                localStorage.setItem('orderHistory', JSON.stringify(history));
+                
+                // Remove from current orders
+                orders.splice(orderIndex, 1);
+                localStorage.setItem('orders', JSON.stringify(orders));
+                
+                // Show save notification
+                showSaveNotification();
+                
+                // Refresh both current orders and history
+                refreshOrders();
+                refreshHistory();
+            }
+        }
+
+        function undoServed(timestamp) {
+            const history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+            const orderIndex = history.findIndex(order => order.timestamp === timestamp);
+            
+            if (orderIndex !== -1) {
+                const order = history[orderIndex];
+                delete order.served;
+                delete order.servedTime;
+                
+                // Move back to current orders
+                let orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                orders.push(order);
+                localStorage.setItem('orders', JSON.stringify(orders));
+                
+                // Remove from history
+                history.splice(orderIndex, 1);
+                localStorage.setItem('orderHistory', JSON.stringify(history));
+                
+                // Show save notification
+                showSaveNotification();
+                
+                refreshOrders();
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelector(`.tab-button[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+        }
+
+        function filterHistory() {
+            const filter = document.getElementById('historyFilter').value;
+            const search = document.getElementById('historySearch').value.toLowerCase();
+            const sortOption = document.getElementById('historySort').value;
+            const history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+            const historyBody = document.getElementById('historyBody');
+            historyBody.innerHTML = '';
+            
+            const now = new Date();
+            let filteredHistory = history.filter(order => {
+                const orderDate = new Date(order.servedTime);
+                let dateMatch = true;
+                
+                switch(filter) {
+                    case 'today':
+                        dateMatch = orderDate.toDateString() === now.toDateString();
+                        break;
+                    case 'week':
+                        const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+                        dateMatch = orderDate >= weekStart;
+                        break;
+                    case 'month':
+                        dateMatch = orderDate.getMonth() === now.getMonth() && 
+                                   orderDate.getFullYear() === now.getFullYear();
+                        break;
+                }
+                
+                const searchMatch = order.customerName.toLowerCase().includes(search) ||
+                                  order.wineSelection.toLowerCase().includes(search);
+                
+                return dateMatch && searchMatch;
+            });
+            
+            // Sort the filtered history
+            filteredHistory = sortOrders(filteredHistory, sortOption);
+            
+            filteredHistory.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.customerName}</td>
+                    <td>${order.wineSelection}</td>
+                    <td>${order.quantity} glass${order.quantity > 1 ? 'es' : ''}</td>
+                    <td class="timestamp">${new Date(order.timestamp).toLocaleString()}</td>
+                    <td class="timestamp">${new Date(order.servedTime).toLocaleString()}</td>
+                    <td class="order-status served">Served</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn undo-btn" onclick="undoServed('${order.timestamp}')">Undo</button>
+                        </div>
+                    </td>
+                `;
+                historyBody.appendChild(row);
+            });
+        }
+
+        function showChangePasscode() {
+            document.getElementById('changePasscodeContainer').style.display = 'block';
+            document.getElementById('changePasscodeError').style.display = 'none';
+            document.getElementById('changePasscodeSuccess').style.display = 'none';
+            document.getElementById('oldPasscode').value = '';
+            document.getElementById('newPasscode').value = '';
+            document.getElementById('confirmPasscode').value = '';
+        }
+
+        function hideChangePasscode() {
+            document.getElementById('changePasscodeContainer').style.display = 'none';
+        }
+
+        function changePasscode() {
+            const oldPasscode = document.getElementById('oldPasscode').value;
+            const newPasscode = document.getElementById('newPasscode').value;
+            const confirmPasscode = document.getElementById('confirmPasscode').value;
+
+            if (oldPasscode !== ADMIN_PASSCODE) {
+                document.getElementById('changePasscodeError').style.display = 'block';
+                document.getElementById('changePasscodeSuccess').style.display = 'none';
+                return;
+            }
+
+            if (newPasscode !== confirmPasscode) {
+                document.getElementById('changePasscodeError').style.display = 'block';
+                document.getElementById('changePasscodeSuccess').style.display = 'none';
+                return;
+            }
+
+            if (newPasscode.length !== 4) {
+                document.getElementById('changePasscodeError').textContent = 'New passcode must be 4 digits';
+                document.getElementById('changePasscodeError').style.display = 'block';
+                document.getElementById('changePasscodeSuccess').style.display = 'none';
+                return;
+            }
+
+            // Update the passcode
+            ADMIN_PASSCODE = newPasscode;
+            document.getElementById('changePasscodeError').style.display = 'none';
+            document.getElementById('changePasscodeSuccess').style.display = 'block';
+            
+            // Clear the form after successful change
+            setTimeout(() => {
+                hideChangePasscode();
+            }, 2000);
+        }
+
+        // Allow Enter key to submit passcode
+        document.getElementById('passcode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPasscode();
+            }
+        });
+
+        // Allow Enter key to submit passcode change
+        document.getElementById('oldPasscode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                changePasscode();
+            }
+        });
+        document.getElementById('newPasscode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                changePasscode();
+            }
+        });
+        document.getElementById('confirmPasscode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                changePasscode();
+            }
+        });
+
+        // Add window unload event to ensure data is saved
+        window.addEventListener('beforeunload', function() {
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            const history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+            const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+            
+            localStorage.setItem('orders', JSON.stringify(orders));
+            localStorage.setItem('orderHistory', JSON.stringify(history));
+            localStorage.setItem('categories', JSON.stringify(categories));
+        });
+
+        function showAddCategory() {
+            document.getElementById('addCategoryModal').style.display = 'flex';
+        }
+
+        function showAddItem() {
+            const categorySelect = document.getElementById('itemCategory');
+            categorySelect.innerHTML = '';
+            
+            const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                categorySelect.appendChild(option);
+            });
+            
+            document.getElementById('addItemModal').style.display = 'flex';
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function addCategory() {
+            const categoryName = document.getElementById('categoryName').value.trim();
+            if (!categoryName) return;
+
+            const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+            const newCategory = {
+                id: Date.now().toString(),
+                name: categoryName,
+                items: []
+            };
+            
+            categories.push(newCategory);
+            localStorage.setItem('categories', JSON.stringify(categories));
+            
+            hideModal('addCategoryModal');
+            refreshMenu();
+            showSaveNotification();
+        }
+
+        function addOptionalSelection() {
+            const container = document.getElementById('optionalSelections');
+            const selectionDiv = document.createElement('div');
+            selectionDiv.className = 'selection-item';
+            selectionDiv.innerHTML = `
+                <input type="text" class="selection-input modal-input" placeholder="Selection name">
+                <input type="number" class="selection-input modal-input" placeholder="Additional price" step="0.01">
+                <span class="remove-selection" onclick="this.parentElement.remove()">×</span>
+            `;
+            container.appendChild(selectionDiv);
+        }
+
+        function addItem() {
+            const categoryId = document.getElementById('itemCategory').value;
+            const itemName = document.getElementById('itemName').value.trim();
+            const itemPrice = parseFloat(document.getElementById('itemPrice').value);
+            
+            if (!categoryId || !itemName || isNaN(itemPrice)) return;
+
+            const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+            const categoryIndex = categories.findIndex(c => c.id === categoryId);
+            
+            if (categoryIndex === -1) return;
+
+            const selections = [];
+            document.querySelectorAll('#optionalSelections .selection-item').forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                if (inputs[0].value.trim()) {
+                    selections.push({
+                        name: inputs[0].value.trim(),
+                        additionalPrice: parseFloat(inputs[1].value) || 0
+                    });
+                }
+            });
+
+            const newItem = {
+                id: Date.now().toString(),
+                name: itemName,
+                price: itemPrice,
+                selections: selections
+            };
+
+            categories[categoryIndex].items.push(newItem);
+            localStorage.setItem('categories', JSON.stringify(categories));
+            
+            hideModal('addItemModal');
+            refreshMenu();
+            showSaveNotification();
+        }
+
+        function refreshMenu() {
+            const categoriesList = document.getElementById('categoriesList');
+            categoriesList.innerHTML = '';
+            
+            const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+            
+            categories.forEach(category => {
+                const categoryCard = document.createElement('div');
+                categoryCard.className = 'category-card';
+                
+                let itemsHtml = '';
+                category.items.forEach(item => {
+                    let selectionsHtml = '';
+                    if (item.selections && item.selections.length > 0) {
+                        selectionsHtml = '<div class="optional-selections">';
+                        item.selections.forEach(selection => {
+                            selectionsHtml += `<div>${selection.name} (+$${selection.additionalPrice.toFixed(2)})</div>`;
+                        });
+                        selectionsHtml += '</div>';
+                    }
+                    
+                    itemsHtml += `
+                        <div class="item-card">
+                            <div class="item-header">
+                                <span class="item-name">${item.name}</span>
+                                <span class="item-price">$${item.price.toFixed(2)}</span>
+                            </div>
+                            ${selectionsHtml}
+                        </div>
+                    `;
+                });
+                
+                categoryCard.innerHTML = `
+                    <div class="category-header">
+                        <span class="category-title">${category.name}</span>
+                    </div>
+                    <div class="item-list">
+                        ${itemsHtml}
+                    </div>
+                `;
+                
+                categoriesList.appendChild(categoryCard);
+            });
+        }
+    </script>
+</body>
+</html> 
