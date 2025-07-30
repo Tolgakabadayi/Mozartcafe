@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İnteraktif Nöbet Sistemi</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .setup-area {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .setup-area > div {
+            flex: 1;
+            min-width: 250px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        textarea, select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #95a5a6;
+        }
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        .roster-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        #roster-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+        #roster-table th, #roster-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            min-width: 50px;
+        }
+        #roster-table th {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .name-cell {
+            background-color: #ecf0f1;
+            font-weight: bold;
+            text-align: left;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+        }
+        .day-cell {
+            cursor: pointer;
+            background-color: #fff;
+            transition: background-color 0.2s;
+        }
+        .day-cell.selected {
+            background-color: #2ecc71 !important;
+            color: white;
+            font-weight: bold;
+        }
+        .day-cell.disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .day-cell.unavailable {
+            background-image: repeating-linear-gradient(45deg, #e8e8e8, #e8e8e8 10px, #f5f5f5 10px, #f5f5f5 20px);
+            cursor: not-allowed;
+        }
+        .weekend {
+            background-color: #f8f9fa;
+        }
+        #export-buttons {
+            margin-top: 25px;
+            text-align: right;
+            gap: 10px;
+            display: none;
+        }
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>İnteraktif Nöbet Sistemi</h1>
+
+        <div class="setup-area">
+            <div>
+                <label for="names-input">Nöbet Tutacak Kişiler (Her satıra bir isim):</label>
+                <textarea id="names-input" placeholder="Ahmet Yılmaz&#10;Ayşe Kaya&#10;Mehmet Öztürk"></textarea>
+            </div>
+            <div>
+                <label for="month-select">Ay:</label>
+                <select id="month-select"></select>
+                <label for="year-input" style="margin-top: 10px;">Yıl:</label>
+                <input type="number" id="year-input">
+            </div>
+            <div>
+                <label>&nbsp;</label>
+                <button id="generate-btn" class="btn">Takvimi Oluştur</button>
+            </div>
+        </div>
+
+        <div class="roster-container">
+            <table id="roster-table"></table>
+        </div>
+
+        <div id="export-buttons">
+            <button id="export-pdf-btn" class="btn btn-danger">PDF Olarak Dışa Aktar</button>
+            <button id="export-excel-btn" class="btn">Excel Olarak Dışa Aktar</button>
+        </div>
+    </div>
+    
+    <div id="unavailable-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="modal-title">İzin Tarihlerini Ayarla</h3>
+            <input type="hidden" id="modal-person-name">
+            <div>
+                <label for="start-day">Başlangıç Günü:</label>
+                <input type="number" id="start-day" min="1" max="31">
+            </div>
+            <div style="margin-top:10px;">
+                <label for="end-day">Bitiş Günü:</label>
+                <input type="number" id="end-day" min="1" max="31">
+            </div>
+            <div style="margin-top:20px;">
+                 <button id="save-unavailable-btn" class="btn">Kaydet</button>
+                 <button id="clear-unavailable-btn" class="btn btn-secondary">İzinleri Temizle</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const namesInput = document.getElementById('names-input');
+            const monthSelect = document.getElementById('month-select');
+            const yearInput = document.getElementById('year-input');
+            const generateBtn = document.getElementById('generate-btn');
+            const rosterTable = document.getElementById('roster-table');
+            const exportButtons = document.getElementById('export-buttons');
+            const exportPdfBtn = document.getElementById('export-pdf-btn');
+            const exportExcelBtn = document.getElementById('export-excel-btn');
+            
+            // Modal elements
+            const modal = document.getElementById('unavailable-modal');
+            const closeModalBtn = modal.querySelector('.close-btn');
+            const saveUnavailableBtn = document.getElementById('save-unavailable-btn');
+            const clearUnavailableBtn = document.getElementById('clear-unavailable-btn');
+            const modalPersonNameInput = document.getElementById('modal-person-name');
+
+            let rosterData = {};
+            let unavailableData = {};
+
+            // Initialize date inputs
+            function initializeDateTime() {
+                const now = new Date();
+                yearInput.value = now.getFullYear();
+                
+                const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+                monthSelect.innerHTML = '';
+                monthNames.forEach((name, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = name;
+                    monthSelect.appendChild(option);
+                });
+                monthSelect.value = now.getMonth();
+            }
+
+            function getDaysInMonth(year, month) {
+                return new Date(year, month + 1, 0).getDate();
+            }
+
+            function generateRoster() {
+                const names = namesInput.value.split('\n').filter(name => name.trim() !== '');
+                if (names.length === 0) {
+                    alert("Lütfen en az bir isim girin.");
+                    return;
+                }
+
+                const year = parseInt(yearInput.value);
+                const month = parseInt(monthSelect.value);
+                const daysInMonth = getDaysInMonth(year, month);
+                
+                rosterData = {};
+                names.forEach(name => {
+                    if(!rosterData[name]) rosterData[name] = [];
+                    if(!unavailableData[name]) unavailableData[name] = [];
+                });
+
+                rosterTable.innerHTML = ''; // Clear previous table
+
+                // Create header
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                const nameHeader = document.createElement('th');
+                nameHeader.textContent = 'İsim / Gün';
+                nameHeader.className = 'name-cell';
+                headerRow.appendChild(nameHeader);
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const th = document.createElement('th');
+                    const date = new Date(year, month, day);
+                    th.innerHTML = `${day}<br><span style="font-size:10px;">${date.toLocaleDateString('tr-TR', { weekday: 'short' })}</span>`;
+                    if (date.getDay() === 0 || date.getDay() === 6) { // Hafta sonu
+                        th.classList.add('weekend');
+                    }
+                    headerRow.appendChild(th);
+                }
+                thead.appendChild(headerRow);
+                rosterTable.appendChild(thead);
+
+                // Create body
+                const tbody = document.createElement('tbody');
+                names.forEach(name => {
+                    const tr = document.createElement('tr');
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'name-cell';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = name;
+                    
+                    const unavailableBtn = document.createElement('button');
+                    unavailableBtn.textContent = 'İzin Ayarla';
+                    unavailableBtn.className = 'btn btn-secondary';
+                    unavailableBtn.style.fontSize = '10px';
+                    unavailableBtn.style.padding = '3px 6px';
+                    unavailableBtn.style.marginLeft = '8px';
+                    unavailableBtn.onclick = () => openUnavailableModal(name);
+                    
+                    nameCell.appendChild(nameSpan);
+                    nameCell.appendChild(unavailableBtn);
+                    tr.appendChild(nameCell);
+
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const td = document.createElement('td');
+                        td.dataset.person = name;
+                        td.dataset.day = day;
+                        td.classList.add('day-cell');
+                        const date = new Date(year, month, day);
+                        if (date.getDay() === 0 || date.getDay() === 6) {
+                            td.classList.add('weekend');
+                        }
+                        tr.appendChild(td);
+                    }
+                    tbody.appendChild(tr);
+                });
+                rosterTable.appendChild(tbody);
+
+                updateTableUI();
+                exportButtons.style.display = 'flex';
+            }
+            
+            function updateTableUI() {
+                const year = parseInt(yearInput.value);
+                const month = parseInt(monthSelect.value);
+                
+                // Get all assigned days
+                const allAssignedDays = new Set();
+                Object.values(rosterData).forEach(days => {
+                    days.forEach(day => allAssignedDays.add(day));
+                });
+
+                document.querySelectorAll('.day-cell').forEach(cell => {
+                    const person = cell.dataset.person;
+                    const day = parseInt(cell.dataset.day);
+
+                    // Reset classes
+                    cell.classList.remove('selected', 'disabled', 'unavailable');
+                    cell.textContent = '';
+                    
+                    // Check for unavailability
+                    if (unavailableData[person] && unavailableData[person].includes(day)) {
+                        cell.classList.add('unavailable');
+                    }
+                    // Check if selected for this person
+                    else if (rosterData[person] && rosterData[person].includes(day)) {
+                        cell.classList.add('selected');
+                        cell.textContent = 'N';
+                    }
+                    // Check if day is taken by someone else
+                    else if (allAssignedDays.has(day)) {
+                        cell.classList.add('disabled');
+                    }
+                });
+            }
+
+            function handleCellClick(e) {
+                if (!e.target.classList.contains('day-cell')) return;
+
+                const cell = e.target;
+                const person = cell.dataset.person;
+                const day = parseInt(cell.dataset.day);
+
+                if (cell.classList.contains('disabled') || cell.classList.contains('unavailable')) {
+                    return; // Don't do anything for disabled/unavailable cells
+                }
+
+                const personDuties = rosterData[person];
+                const dayIndex = personDuties.indexOf(day);
+
+                if (dayIndex > -1) {
+                    // Day is already selected, so unselect it
+                    personDuties.splice(dayIndex, 1);
+                } else {
+                    // Day is not selected, select it
+                    personDuties.push(day);
+                }
+                
+                updateTableUI();
+            }
+            
+            function openUnavailableModal(personName) {
+                modalPersonNameInput.value = personName;
+                document.getElementById('modal-title').textContent = `${personName} için İzin Tarihlerini Ayarla`;
+                
+                const personUnavailableDays = unavailableData[personName] || [];
+                if (personUnavailableDays.length > 0) {
+                    document.getElementById('start-day').value = Math.min(...personUnavailableDays);
+                    document.getElementById('end-day').value = Math.max(...personUnavailableDays);
+                } else {
+                    document.getElementById('start-day').value = '';
+                    document.getElementById('end-day').value = '';
+                }
+                
+                modal.style.display = "block";
+            }
+
+            closeModalBtn.onclick = () => modal.style.display = "none";
+            window.onclick = (event) => {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            saveUnavailableBtn.onclick = () => {
+                const personName = modalPersonNameInput.value;
+                const start = parseInt(document.getElementById('start-day').value);
+                const end = parseInt(document.getElementById('end-day').value);
+                
+                if (isNaN(start) || isNaN(end) || start > end) {
+                    alert("Lütfen geçerli bir başlangıç ve bitiş günü girin.");
+                    return;
+                }
+                
+                unavailableData[personName] = [];
+                for(let i = start; i <= end; i++) {
+                    unavailableData[personName].push(i);
+                }
+                
+                // İzinli güne denk gelen nöbeti sil
+                rosterData[personName] = rosterData[personName].filter(day => !unavailableData[personName].includes(day));
+
+                updateTableUI();
+                modal.style.display = "none";
+            };
+
+            clearUnavailableBtn.onclick = () => {
+                const personName = modalPersonNameInput.value;
+                unavailableData[personName] = [];
+                updateTableUI();
+                modal.style.display = "none";
+            };
+
+            function exportToPdf() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape' });
+                
+                const year = yearInput.value;
+                const monthName = monthSelect.options[monthSelect.selectedIndex].text;
+                doc.text(`Nöbet Çizelgesi - ${monthName} ${year}`, 14, 15);
+
+                const head = [[]];
+                const body = [];
+                
+                const headerCells = rosterTable.querySelectorAll('thead th');
+                headerCells.forEach(th => head[0].push(th.innerText.replace(/\n/g, ' ')));
+
+                const bodyRows = rosterTable.querySelectorAll('tbody tr');
+                bodyRows.forEach(tr => {
+                    const rowData = [];
+                    const cells = tr.querySelectorAll('td');
+                    // İlk hücre (isim)
+                    rowData.push(cells[0].querySelector('span').textContent);
+                    // Diğer hücreler (günler)
+                    for(let i = 1; i < cells.length; i++) {
+                         rowData.push(cells[i].classList.contains('selected') ? 'X' : '');
+                    }
+                    body.push(rowData);
+                });
+
+                doc.autoTable({
+                    head: head,
+                    body: body,
+                    startY: 20,
+                    theme: 'grid',
+                    styles: {
+                        font: 'helvetica',
+                        fontSize: 8
+                    },
+                     headStyles: {
+                        fillColor: [44, 62, 80],
+                        textColor: 255,
+                        fontStyle: 'bold'
+                    }
+                });
+
+                doc.save(`nobet_cizelgesi_${monthName}_${year}.pdf`);
+            }
+
+            function exportToExcel() {
+                const year = yearInput.value;
+                const monthName = monthSelect.options[monthSelect.selectedIndex].text;
+                const fileName = `nobet_cizelgesi_${monthName}_${year}.xlsx`;
+
+                const data = [];
+                // Başlık satırı
+                const headerRow = [];
+                rosterTable.querySelectorAll('thead th').forEach(th => headerRow.push(th.innerText.replace(/\n/g, ' ')));
+                data.push(headerRow);
+                
+                // Veri satırları
+                const bodyRows = rosterTable.querySelectorAll('tbody tr');
+                bodyRows.forEach(tr => {
+                    const rowData = [];
+                    const cells = tr.querySelectorAll('td');
+                     // İlk hücre (isim)
+                    rowData.push(cells[0].querySelector('span').textContent);
+                     // Diğer hücreler (günler)
+                    for(let i = 1; i < cells.length; i++) {
+                         rowData.push(cells[i].classList.contains('selected') ? 'NÖBET' : '');
+                    }
+                    data.push(rowData);
+                });
+                
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Nöbet Listesi");
+                XLSX.writeFile(wb, fileName);
+            }
+
+            generateBtn.addEventListener('click', generateRoster);
+            rosterTable.addEventListener('click', handleCellClick);
+            exportPdfBtn.addEventListener('click', exportToPdf);
+            exportExcelBtn.addEventListener('click', exportToExcel);
+
+            initializeDateTime();
+        });
+    </script>
+</body>
+</html>
